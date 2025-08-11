@@ -2,11 +2,10 @@
 import os
 from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 def transcribe_audio(file_path: str) -> str | None:
     """Send an audio file to OpenAI Whisper and return the transcript text."""
     try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         with open(file_path, "rb") as audio_file:
             transcript_obj = client.audio.transcriptions.create(
                 model="whisper-1", 

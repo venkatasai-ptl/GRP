@@ -16,7 +16,7 @@ load_dotenv()
 migrate = Migrate()
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='app/templates', static_folder='app/static')
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "devkey")
@@ -38,15 +38,8 @@ def create_app():
     def home():
         return "<a href='/login'>Login</a> | <a href='/register'>Register</a>"
     
-        # ---- helper: require login ----
-    def login_required(view):
-        @wraps(view)
-        def wrapped(*args, **kwargs):
-            if not session.get("user_id"):
-                flash("Please log in first", "error")
-                return redirect(url_for("auth.login"))
-            return view(*args, **kwargs)
-        return wrapped
+    # ---- helper: require login ----
+    from app.auth_helpers import login_required
 
     # ---- upload endpoint for audio blobs ----
     @app.post("/api/upload")
@@ -78,9 +71,12 @@ def create_app():
     def get_recording(name):
         return send_from_directory(app.config["UPLOAD_FOLDER"], name)
 
+    # Import models after app creation to avoid circular imports
+    from app.models import User, Recording   # noqa: F401
+
     return app
 
 app = create_app()
 
-# so alembic/flask-migrate sees models
-from app.models import User, Recording   # noqa: E402,F401
+if __name__ == '__main__':
+    app.run()

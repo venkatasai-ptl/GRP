@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template
-from app.routes.auth import login_required
+from app.auth_helpers import login_required
 
 main_bp = Blueprint('main', __name__)
 
