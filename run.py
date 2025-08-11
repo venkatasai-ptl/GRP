@@ -74,6 +74,11 @@ def create_app():
     # Import models after app creation to avoid circular imports
     from app.models import User, Recording   # noqa: F401
 
+    # Context processor to add current year to all templates
+    @app.context_processor
+    def inject_current_year():
+        return {'current_year': datetime.now().year}
+
     return app
 
 app = create_app()
