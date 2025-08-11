@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app import db
-from models import User
+from app.models import User
 from email_validator import validate_email, EmailNotValidError
 
 auth_bp = Blueprint("auth", __name__)
@@ -14,7 +14,7 @@ def login():
         if user and user.check_password(password):
             session["user_id"] = user.id
             flash("Logged in!", "success")
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("main.dashboard"))
         flash("Invalid email or password", "error")
     return render_template("login.html")
 
