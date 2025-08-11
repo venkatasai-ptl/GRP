@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Recorder</h1>
+
+<div id="status">Idle</div>
+<button id="startBtn">Start</button>
+<button id="stopBtn" disabled>Stop</button>
+
+<ul id="log"></ul>
+
+<script>
+  let mediaRecorder;
+  let chunks = [];
+
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn  = document.getElementById('stopBtn');
+  const logEl    = document.getElementById('log');
+
+  function log(msg) {
+    const li = document.createElement('li');
+    li.textContent = msg;
+    logEl.prepend(li);
+  }
+
+  async function init() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      mediaRecorder.onstart = () => { chunks = []; statusEl.textContent = 'Recording…'; };
+      mediaRecorder.onstop = async () => {
+        statusEl.textContent = 'Stopped';
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        await upload(blob);
+      };
+      startBtn.disabled = false;
+    } catch (err) {
+      statusEl.textContent = 'Mic permission denied';
+      log(err.toString());
+    }
+  }
+
+  startBtn.onclick = () => {
+    mediaRecorder.start();
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+  };
+
+  stopBtn.onclick = () => {
+    mediaRecorder.stop();
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  };
+
+  async function upload(blob) {
+    statusEl.textContent = 'Uploading…';
+    const fd = new FormData();
+    // "audio" key must match app.py
+    fd.append('audio', blob, 'recording.webm');
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      statusEl.textContent = 'Uploaded: ' + data.filename;
+      log('Saved ' + data.filename);
+      // Optional: play it back
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.controls = true;
+      logEl.prepend(audio);
+    } catch (e) {
+      statusEl.textContent = 'Upload failed';
+      log(e.toString());
+    }
+  }
+
+  init();
+</script>
+{% endblock %}

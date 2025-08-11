@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+.python-version
+*.egg-info/
+*.egg
+dist/
+build/
+.PytestCache/
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# Local Development
+instance/
+.webassets-cache
+
+# Windows
+Thumbs.db
+[Dd]esktop.ini
+
+# Audio files directory
+audios/
